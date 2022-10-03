@@ -1,0 +1,97 @@
+#! /bin/bash
+echo "NOTICE!!!" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+echo "Coverting is currently only for ebooks and documents. All converting is being done with 'ebook-convert'" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+
+find_type () {
+    echo "Find by Type" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "Enter Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read type
+    find . -name '*.'$type''
+    echo "Done finding files"
+}
+
+find_copy () {
+    echo "Find by Type and Copy" | sed -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "This will copy any located files to a folder named by your selected TYPE. Example: Searched for 'mp3'," | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "the copied files will be in the current working directory as 'mp3'. This will also keep your file tree." | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "Enter Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read type
+    find . -name '*.'$type'' | cpio -pdm  ./$type
+    echo "Done finding and copying files..." | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "DONE" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+}
+
+find_name () {
+    echo "Find by Name" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "Enter File Name" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read name
+    find . -name $name
+    echo "Done finding files"
+}
+
+find_convert () {
+    echo "Find and Covert only" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "Enter Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read type1
+    echo "Enter Output Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read type2
+    find . -name '*.'$type1'' -exec ebook-convert {} {}.$type2 \;
+    echo "Done finding and converting files..."
+    find . -name '*.'$type1.$type2'' -exec rename 's/'$type1.$type2'/'$type2'/' {} \;
+    echo "Done renaming files..."
+    echo "DONE"
+}
+
+find_convert_rm () {
+    echo "Find, Convert and Remove" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "WARNING THIS WILL REMOVE ORIGINAL FILES" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    echo "ARE YOU SURE YOU WISH TO CONTINUE? Y/n" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+    read answer
+      if [ $answer = "Y" ]
+         then echo  "Enter Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+         read type1
+         echo "Enter Output Type (DO NOT INCLUDE THE '.')" | sed  -e :a -e "s/^.\{1,$(tput cols)\}$/ & /;ta" | tr -d '\n' | head -c $(tput cols)
+         read type2
+       	 find . -name '*.'$type1'' -exec ebook-convert {} {}.$type2 \;
+	 echo "Done with finding and converting files..."
+	 find . -name '*.'$type1.$type2'' -exec rename 's/'$type1.$type2'/'$type2'/' {} \;
+	 echo "Done with Renaming. Continuing with Removal..."
+         find . -name '*.'$type1'' -exec rm {} \;
+	 echo "Finished With Removal..."
+         echo "DONE"
+     fi
+}
+
+quit () {
+   echo "Quit"
+   echo "User Requested Exit"
+   exit
+}
+
+while true; do
+    options=("Find by Type" "Find by Type and Copy" "Find by Name" "Find by Type and Convert" "Find by Type, Convert and Remove" "Quit")
+
+    echo "Choose an option:"
+    select opt in "${options[@]}"; do
+        case $REPLY in
+            1) find_type; break ;;
+            2) find_copy; break ;;
+	    3) find_name; break ;;
+	    4) find_convert; break;;
+	    5) find_convert_rm; break;;
+	    6) quit;;
+            *) echo "What's that? Invaild Option $REPLY" >&2;;
+        esac
+    done
+
+    echo "Doing other things..."
+
+    echo "Are we done?"
+    select opt in "Yes" "No"; do
+        case $REPLY in
+            1) quit;;
+            2) break;;
+            *) echo "Look, it's a simple question... Invaild Option" >&2;;
+        esac
+    done
+done
